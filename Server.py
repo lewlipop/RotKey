@@ -67,4 +67,6 @@ def decrypt_data():
 
 if __name__ == '__main__':
     # Run the Flask server over HTTPS using your self-signed certificate. 
-    app.run(host='0.0.0.0', port=5000, debug=True, ssl_context=('cert.pem', 'key.pem')) // This shit needa change because I self generated the cert
+    app.run(host='0.0.0.0', port=5000, debug=True, ssl_context=('cert.pem', 'key.pem')) 
+    
+    #This shit needa change because I self-generated the cert
