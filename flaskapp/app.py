@@ -212,5 +212,57 @@ def register():
         if conn:
             conn.close()
 
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    email = data.get('email').strip()
+    password = data.get('password').strip()
+
+    if not email or not password:
+        return jsonify({'success': False, 'message': 'Email and password are required'}), 400
+
+    conn = None
+    cursor = None
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Check if user exists
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 400
+
+        # Verify password
+        hashed_password = user[1]  # Assuming password is stored as second column
+        if not bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+            return jsonify({'success': False, 'message': 'Invalid password'}), 400
+
+        # Create session
+        session['user_id'] = user[0]
+        session['username'] = user[2]
+
+        return jsonify({'success': True, 'message': 'Login successful', 'userId': user[0], 'username': user[2]}), 200
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({'success': False, 'message': 'Database error'}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    session.pop('username', None)
+    return redirect(url_for('home'))
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
