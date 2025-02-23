@@ -80,14 +80,20 @@ def test_page():
          <label>Plaintext: <input type="text" id="plaintext" required /></label>
          <button type="submit">Encrypt & Decrypt</button>
       </form>
+      
+      
+      
       <h2>Decrypted Output</h2>
       <pre id="output">Awaiting submission...</pre>
+      
+      
       <script>
          async function fetchSharedKey(){
              const resp = await fetch("/get-shared-key");
              const data = await resp.json();
              document.getElementById("serverKey").textContent = data.sharedKey ? data.sharedKey : data.error;
          }
+         
          document.getElementById("testForm").addEventListener("submit", async function(e){
              e.preventDefault();
              const plaintext = document.getElementById("plaintext").value;

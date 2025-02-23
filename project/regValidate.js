@@ -6,7 +6,7 @@ function validateForm() {
     let username = document.forms["registerForm"]["fname"].value;
     let pwd = document.forms["registerForm"]["fpwd"].value;
     let confirmPwd = document.forms["registerForm"]["fconfirmPwd"].value;
-
+//    let termsCheckbox = document.forms["registerForm"]["fterms"];
     
 
     // Boolean for return

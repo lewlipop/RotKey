@@ -1,76 +1,78 @@
 <html>
-    <head>
-        <title>Register</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="./main.css">
-        <script type="text/javascript" src="./regValidate.js"></script>
-    </head>
 
-    <body>
-        <!-- Navigation bar -->
-        <?php
-            include "./navbar.php";
-        ?>
+<head>
+    <title>Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/main.css">
+    <script type="text/javascript" src="/js/regValidate.js"></script>
+</head>
 
-        <div class="flex-container">
-            <!-- Register Form -->
-            <form method="POST" id="registerForm">
-                <fieldset>
-                    <legend><b>Register Form</b></legend>
-                    <p class="note">Please fill out <b>all</b> fields to complete your registration.</p>
+<body>
+    <!-- Navigation bar -->
+    <?php
+    include "./navbar.php";
+    ?>
 
-                    <label for="femail"><b class="form-error">*</b>Email:</label><br>
-                    <input type="email" id="femail" name="femail" class="text-input" required></input><br>
-                    <p class="form-error" id="femailError"></p>
+    <div class="flex-container">
+        <!-- Register Form -->
+        <form method="POST" id="registerForm">
+            <fieldset>
+                <legend><b>Register Form</b></legend>
+                <p class="note">Please fill out <b>all</b> fields to complete your registration.</p>
 
-                    <label for="fname"><b class="form-error">*</b>Username:</label><br>
-                    <input type="text" id="fname" name="fname" class="text-input" required></input><br>
-                    <p class="form-error" id="fnameError"></p><br>
+                <label for="femail"><b class="form-error">*</b>Email:</label><br>
+                <input type="email" id="femail" name="femail" class="text-input" required></input><br>
+                <p class="form-error" id="femailError"></p>
 
-                    <h4 class="note"><u>Note</u></h4>
-                    <p class="note">Password must be at least 8 characters long.</p>
-                    <p class="note">Password must contain: Special characters, Numbers, Uppercase and Lowercase letters.</p><br>
-                    <label for="fpwd"><b class="form-error">*</b>Password:</label><br>
-                    <input type="password" id="fpwd" name="fpwd" class="text-input" minlength="8" required></input><br>
-                    <p class="form-error" id="fpwdError"></p>
+                <label for="fname"><b class="form-error">*</b>Username:</label><br>
+                <input type="text" id="fname" name="fname" class="text-input" required></input><br>
+                <p class="form-error" id="fnameError"></p><br>
 
-                    <label for="fconfirmPwd"><b class="form-error">*</b>Confirm Password:</label><br>
-                    <input type="password" id="fconfirmPwd" name="fconfirmPwd" class="text-input" minlength="8" required></input><br>
-                    <p class="form-error" id="fconfirmPwdError"></p>
+                <h4 class="note"><u>Note</u></h4>
+                <p class="note">Password must be at least 8 characters long.</p>
+                <p class="note">Password must contain: Special characters, Numbers, Uppercase and Lowercase letters.</p><br>
+                <label for="fpwd"><b class="form-error">*</b>Password:</label><br>
+                <input type="password" id="fpwd" name="fpwd" class="text-input" minlength="8" required></input><br>
+                <p class="form-error" id="fpwdError"></p>
 
-                    <input type="checkbox" id="fterms" name="fterms" required>
-                    <label for="fterms"> <b class="form-error">*</b>I accept <a href="https://gist.github.com/MattIPv4/045239bc27b16b2bcf7a3a9a4648c08a" target="_blank">Terms of Use and Privacy Policy</a>.</label><br>
-                    
-                    <input type="button" value="Register" class="form-submit" id="fsubmit" onclick="register()"></input>
-                    <hr>
+                <label for="fconfirmPwd"><b class="form-error">*</b>Confirm Password:</label><br>
+                <input type="password" id="fconfirmPwd" name="fconfirmPwd" class="text-input" minlength="8" required></input><br>
+                <p class="form-error" id="fconfirmPwdError"></p>
 
-                    <!-- Link to login page -->
-                    <p>Already have an account? Click <a href="./login.php">here</a> to login.</p>
-                </fieldset>
-            </form>
-        </div>
+                <p>By regisering, you accept <a href="https://gist.github.com/MattIPv4/045239bc27b16b2bcf7a3a9a4648c08a" target="_blank">
+                    the Terms of Use and Privacy Policy</a> mentioned in this link.
+                </p>
 
-        <script>
-            // Submit the form data if validation passes
-            function register() {
-                if (validateForm()) {
-                    // Get values from the form
-                    const email = document.getElementById("femail").value;
-                    const username = document.getElementById("fname").value;
-                    const password = document.getElementById("fpwd").value;
+                <input type="button" value="Register" class="form-submit" id="fsubmit" onclick="register()"></input>
+                <hr>
 
-                    // Create a data object to send in the request body
-                    const data = {
-                        email: email,
-                        username: username,
-                        password: password
-                    };
+                <!-- Link to login page -->
+                <p>Already have an account? Click <a href="./login.php">here</a> to login.</p>
+            </fieldset>
+        </form>
+    </div>
 
-                    console.log("Sending Data:", data);
+    <script>
+        // Submit the form data if validation passes
+        function register() {
+            if (validateForm()) {
+                // Get values from the form
+                const email = document.getElementById("femail").value;
+                const username = document.getElementById("fname").value;
+                const password = document.getElementById("fpwd").value;
 
-                    // Send the POST request to Flask backend
-                    fetch('https://p2bg4rotkey-ict2214.zapto.org/process_register', {
+                // Create a data object to send in the request body
+                const data = {
+                    email: email,
+                    username: username,
+                    password: password
+                };
+
+                console.log("Sending Data:", data);
+
+                // Send the POST request to Flask backend
+                fetch('/process_register', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -82,15 +84,16 @@
                         if (result.success) {
                             alert('Registration successful');
                             // Redirect or show success message
-                            window.location.href = 'login.php';  // Redirect to login page
+                            window.location.href = 'login.php'; // Redirect to login page
                         } else {
                             alert('Error: ' + result.message);
                         }
                     })
                     .catch(error => console.error('Error:', error));
-                }
             }
-        </script>
+        }
+    </script>
 
-    </body>
+</body>
+
 </html>
