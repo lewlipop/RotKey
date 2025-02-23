@@ -11,7 +11,7 @@
 <body>
     <!-- Navigation bar -->
     <?php
-    include "./navbar.php";
+    include "./navbar_new.php";
     ?>
 
     <div class="flex-container">
@@ -48,7 +48,7 @@
                 <hr>
 
                 <!-- Link to login page -->
-                <p>Already have an account? Click <a href="./login.php">here</a> to login.</p>
+                <p>Already have an account? Click <a href="./login_new.php">here</a> to login.</p>
             </fieldset>
         </form>
     </div>
@@ -84,7 +84,7 @@
                         if (result.success) {
                             alert('Registration successful');
                             // Redirect or show success message
-                            window.location.href = 'login.php'; // Redirect to login page
+                            window.location.href = 'login_new.php'; // Redirect to login page
                         } else {
                             alert('Error: ' + result.message);
                         }

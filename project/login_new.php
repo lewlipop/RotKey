@@ -26,7 +26,7 @@
                 <input type="password" id="fpwd" name="fpwd" class="text-input" required><br>
                 <input type="submit" value="Login" class="form-submit" id="fsubmit">
                 <hr>
-                <p>Don't have an account? Click <a href="./register.php">here</a> to register.</p>
+                <p>Don't have an account? Click <a href="./register_new.php">here</a> to register.</p>
             </fieldset>
         </form>
     </div>
