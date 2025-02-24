@@ -124,3 +124,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+
+//Listen for webpage check if running.
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  if (message.action === "checkKeyRotation") {
+      if (encryptionEnabled) {
+          sendResponse({ status: "active" });
+      } else {
+          sendResponse({ status: "inactive" });
+      }
+  }
+  return true;
+});

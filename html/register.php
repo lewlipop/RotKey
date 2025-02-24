@@ -11,6 +11,7 @@
         <!-- Navigation bar -->
         <?php
             include "./navbar.php";
+            //include "./prompt_extension.php"
         ?>
 
         <div class="flex-container">
@@ -39,9 +40,9 @@
                     <input type="password" id="fconfirmPwd" name="fconfirmPwd" class="text-input" minlength="8" required></input><br>
                     <p class="form-error" id="fconfirmPwdError"></p>
 
-                    <input type="checkbox" id="fterms" name="fterms" required>
-                    <label for="fterms"> <b class="form-error">*</b>I accept <a href="https://gist.github.com/MattIPv4/045239bc27b16b2bcf7a3a9a4648c08a" target="_blank">Terms of Use and Privacy Policy</a>.</label><br>
-                    
+		    <p>By regisering, you accept <a href="https://gist.github.com/MattIPv4/045239bc27b16b2bcf7a3a9a4648c08a" target="_blank">
+                    the Terms of Use and Privacy Policy</a> mentioned in this link.</p>
+
                     <input type="button" value="Register" class="form-submit" id="fsubmit" onclick="register()"></input>
                     <hr>
 

@@ -9,6 +9,7 @@ import hashlib
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
+app.secret_key = 'whatKeyisIt'
 
 # Database connection
 def get_db_connection():
@@ -116,31 +117,66 @@ def test_page():
       <h2>Decrypted Output</h2>
       <pre id="output">Awaiting submission...</pre>
       <script>
+         function hexToArrayBuffer(hex) {
+             const typedArray = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
+             return typedArray.buffer;
+         }
+         async function importKeyFromHex(hex) {
+             const keyBuffer = hexToArrayBuffer(hex);
+             return await window.crypto.subtle.importKey(
+                 "raw",
+                 keyBuffer,
+                 { name: "AES-GCM" },
+                 false,
+                 ["encrypt", "decrypt"]
+             );
+         }
+         async function encryptWithKey(plaintext, key, iv) {
+             const encoder = new TextEncoder();
+             const encoded = encoder.encode(plaintext);
+             return await window.crypto.subtle.encrypt(
+                 { name: "AES-GCM", iv: iv },
+                 key,
+                 encoded
+             );
+         }
          async function fetchSharedKey(){
              const resp = await fetch("/get-shared-key");
              const data = await resp.json();
              document.getElementById("serverKey").textContent = data.sharedKey ? data.sharedKey : data.error;
+             return data.sharedKey;
          }
          document.getElementById("testForm").addEventListener("submit", async function(e){
              e.preventDefault();
              const plaintext = document.getElementById("plaintext").value;
-             const iv = [1,2,3,4,5,6,7,8,9,10,11,12];
-             const { encryptedData, iv: usedIV } = await (async () => {
-                // For proper testing, you need to perform AES-GCM encryption using the current shared key.
-                // For demonstration, we simulate encryption by using the TextEncoder output.
-                // In a production scenario, the client should encrypt using the shared key.
-                const encoder = new TextEncoder();
-                const encoded = encoder.encode(plaintext);
-                // Simulate encryption: This is not actual AES-GCM encryption.
-                return { encryptedData: Array.from(encoded), iv: iv };
-             })();
+             const iv = new Uint8Array([1,2,3,4,5,6,7,8,9,10,11,12]);
+             const sharedKeyHex = await fetchSharedKey();
+             if(!sharedKeyHex){
+                 document.getElementById("output").textContent = "Shared key not available.";
+                 return;
+             }
+             let cryptoKey;
+             try {
+                 cryptoKey = await importKeyFromHex(sharedKeyHex);
+             } catch(err) {
+                 document.getElementById("output").textContent = "Error importing key: " + err;
+                 return;
+             }
+             let ciphertextBuffer;
+             try {
+                 ciphertextBuffer = await encryptWithKey(plaintext, cryptoKey, iv);
+             } catch(err) {
+                 document.getElementById("output").textContent = "Encryption error: " + err;
+                 return;
+             }
+             const ciphertextArray = Array.from(new Uint8Array(ciphertextBuffer));
              const response = await fetch("/decrypt", {
                  method: "POST",
                  headers: {"Content-Type": "application/json"},
-                 body: JSON.stringify({ encryptedData: encryptedData, iv: iv })
+                 body: JSON.stringify({ encryptedData: ciphertextArray, iv: Array.from(iv) })
              });
-             const decData = await response.json();
-             document.getElementById("output").textContent = decData.decryptedData ? decData.decryptedData : decData.error;
+             const result = await response.json();
+             document.getElementById("output").textContent = result.decryptedData ? result.decryptedData : result.error;
          });
       </script>
     </body>
@@ -187,9 +223,23 @@ def register():
     cursor = None
 
     try:
-#        print("Calling get_db_connection()...")
+#       print("Calling get_db_connection()...")
         conn = get_db_connection()       
         cursor = conn.cursor()
+
+	# Check if the username already exists
+        cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s", (username,))
+        (user_exists,)=cursor.fetchone()
+        if user_exists:
+            return jsonify({'success': False, 'message': 'Username already exists'}), 400
+
+        # Check if the email already exists
+        cursor.execute("SELECT COUNT(*) FROM users WHERE email = %s", (email,))
+        (email_exists,)=cursor.fetchone()
+        if email_exists:
+            return jsonify({'success': False, 'message': 'Email already exists'}), 400
+
+
 
 #        print(cursor)
 
@@ -200,8 +250,8 @@ def register():
 
         return jsonify({'success': True, 'message': 'Registration successful'}), 201
 
-    except mysql.connector.IntegrityError:
-        return jsonify({'success': False, 'message': 'Email already exists'}), 400
+    #except mysql.connector.IntegrityError:
+     #   return jsonify({'success': False, 'message': 'Email already exists'}), 400
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'Database error: {str(e)}'}), 500
@@ -212,44 +262,53 @@ def register():
         if conn:
             conn.close()
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    
-    email = data.get('email').strip()
-    password = data.get('password').strip()
 
+
+@app.route('/process_login', methods=['POST'])
+def login():
+    data = request.get_json()  # Parse JSON data from request
+
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
+
+#    print(email)
+#    print(password)
+    
     if not email or not password:
-        return jsonify({'success': False, 'message': 'Email and password are required'}), 400
+        return jsonify({'success': False, 'message': 'Email and Password are required'}), 400
 
     conn = None
     cursor = None
-    
+
     try:
+#        print("Calling get db connection()...")
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Check if user exists
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        # Query to get the user details based on email
+        cursor.execute("SELECT idUsers, username, password FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
 
         if not user:
-            return jsonify({'success': False, 'message': 'User not found'}), 400
+#            print("h1")
+            return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
 
-        # Verify password
-        hashed_password = user[1]  # Assuming password is stored as second column
-        if not bcrypt.checkpw(password.encode('utf-8'), hashed_password):
-            return jsonify({'success': False, 'message': 'Invalid password'}), 400
+        user_id, username, hashed_password = user
 
-        # Create session
-        session['user_id'] = user[0]
-        session['username'] = user[2]
+        # Check if the password matches
+        if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+#            print("h2")
+            return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
 
-        return jsonify({'success': True, 'message': 'Login successful', 'userId': user[0], 'username': user[2]}), 200
+        #If login is successful, set session (optional)
+#        print("h3")
+        session['user'] = username  # Uncomment if using sessions
 
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        return jsonify({'success': False, 'message': 'Database error'}), 500
+        return jsonify({'success': True, 'message': 'Login successful', 'username': username}), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Database error: {str(e)}'}), 500
 
     finally:
         if cursor:
@@ -257,11 +316,6 @@ def login():
         if conn:
             conn.close()
 
-@app.route('/logout')
-def logout():
-    session.pop('user_id', None)
-    session.pop('username', None)
-    return redirect(url_for('home'))
 
 
 if __name__ == "__main__":
