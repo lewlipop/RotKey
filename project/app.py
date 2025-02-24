@@ -93,7 +93,7 @@ def get_shared_key():
 
 @app.route('/test')
 def test_page():
-    html = r'''
+    html = '''
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -318,5 +318,5 @@ def login():
 
 
 
-#if __name__ == "__main__":
-#    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)

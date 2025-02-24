@@ -31,7 +31,7 @@ async function updateServerKey(keyHex) {
     let serverUrl;
     await new Promise((resolve) => {
       chrome.storage.local.get("serverUrl", (result) => {
-        serverUrl = result.serverUrl || "https://192.168.86.30:5000";
+        serverUrl = result.serverUrl || "https://23.102.235.79:5000";
         resolve();
       });
     });

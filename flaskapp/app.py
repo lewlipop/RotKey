@@ -266,14 +266,28 @@ def register():
 
 @app.route('/process_login', methods=['POST'])
 def login():
-    data = request.get_json()  # Parse JSON data from request
+    if current_shared_key is None:
+        return jsonify({'success': False, 'message': 'Shared key not established'}), 400
+
+    data = request.get_json()
+    encrypted_data_list = data.get('encryptedData')
+    iv_list = data.get('iv')
+    if not encrypted_data_list or not iv_list:
+        return jsonify({'success': False, 'message': 'Missing encrypted data or IV'}), 400
+
+    try:
+        ciphertext = bytes(encrypted_data_list)
+        iv = bytes(iv_list)
+        aesgcm = AESGCM(current_shared_key)
+        decrypted_data = aesgcm.decrypt(iv, ciphertext, None)
+        decrypted_json = decrypted_data.decode('utf-8')
+        data = json.loads(decrypted_json)
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Decryption error: {str(e)}'}), 500
 
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()
 
-#    print(email)
-#    print(password)
-    
     if not email or not password:
         return jsonify({'success': False, 'message': 'Email and Password are required'}), 400
 
@@ -281,8 +295,6 @@ def login():
     cursor = None
 
     try:
-#        print("Calling get db connection()...")
-
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -291,18 +303,15 @@ def login():
         user = cursor.fetchone()
 
         if not user:
-#            print("h1")
             return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
 
         user_id, username, hashed_password = user
 
         # Check if the password matches
         if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-#            print("h2")
             return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
 
-        #If login is successful, set session (optional)
-#        print("h3")
+        # If login is successful, set session (optional)
         session['user'] = username  # Uncomment if using sessions
 
         return jsonify({'success': True, 'message': 'Login successful', 'username': username}), 200

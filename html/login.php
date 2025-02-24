@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/main.css">
+    <script type="text/javascript" src="/js/encryption.js"></script>
 </head>
 
 <body>
@@ -34,12 +35,56 @@
     </div>
 
     <script>
+        function hexToArrayBuffer(hex) {
+            const typedArray = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
+            return typedArray.buffer;
+        }
+
+        async function importKeyFromHex(hex) {
+            const keyBuffer = hexToArrayBuffer(hex);
+            return await window.crypto.subtle.importKey(
+                "raw",
+                keyBuffer, {
+                    name: "AES-GCM"
+                },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        async function encryptWithKey(plaintext, key, iv) {
+            const encoder = new TextEncoder();
+            const encoded = encoder.encode(plaintext);
+            return await window.crypto.subtle.encrypt({
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                key,
+                encoded
+            );
+        }
+
+        function fetchSharedKey() {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "/get-shared-key", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    const data = JSON.parse(xhr.responseText);
+                    console.log(data); // Debug the response
+                    document.getElementById("serverKey").textContent = data.sharedKey ? data.sharedKey : data.error;
+                }
+            };
+
+            xhr.send();
+        }
+
         document.getElementById("loginForm").addEventListener("submit", function(event) {
             event.preventDefault(); // Prevent form submission
 
             const email = document.getElementById("femail").value;
             const password = document.getElementById("fpwd").value;
-
             const data = {
                 email: email,
                 password: password
@@ -48,13 +93,38 @@
             console.log("Sending Data:", data);
             // Using async/await for better error handling and readability
             async function login() {
+                const iv = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+                const sharedKeyHex = await fetchSharedKey();
+                if (!sharedKeyHex) {
+                    //document.getElementById("output").textContent = "Shared key not available.";
+                    console.error("Shared key not available.");
+                    return;
+                }
+                let cryptoKey;
                 try {
+                    cryptoKey = await importKeyFromHex(sharedKeyHex);
+                } catch (err) {
+                    alert("Error importing key: " + err);
+                    return;
+                }
+                let ciphertextBuffer;
+                try {
+                    ciphertextBuffer = await encryptWithKey(data, cryptoKey, iv);
+                } catch (err) {
+                    alert("Encryption error: " + err);
+                    return;
+                }
+                try {
+                    const ciphertextArray = Array.from(new Uint8Array(ciphertextBuffer));
                     const loginResponse = await fetch('/process_login', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({
+                            encryptedData: ciphertextArray,
+                            iv: Array.from(iv)
+                        })
                     });
 
                     const loginData = await loginResponse.json();
