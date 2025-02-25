@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "name": "RotKey Attempt at Dynamic",
+    "name": "RotKey",
     "version": "1.0",
     "description": "RotKey: Symmetric Key Rotation Extension over TLS",
     "icons": {

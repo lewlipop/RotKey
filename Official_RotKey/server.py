@@ -4,7 +4,7 @@ import base64
 
 app = Flask(__name__)
 
-# Global variable to store the current shared key (bytes)
+# Global variable to store the current symmetric key (bytes)
 current_shared_key = None
 
 @app.after_request
@@ -59,7 +59,6 @@ def get_shared_key():
 
 @app.route('/rotkey-handshake', methods=['GET'])
 def rotkey_handshake():
-    # Simple handshake endpoint to check compatibility.
     return jsonify({"status": "ok", "message": "RotKey server ready", "version": "1.0"})
 
 @app.route('/test')
@@ -88,31 +87,66 @@ def test_page():
       <h2>Decrypted Output</h2>
       <pre id="output">Awaiting submission...</pre>
       <script>
+         function hexToArrayBuffer(hex) {
+             const typedArray = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
+             return typedArray.buffer;
+         }
+         async function importKeyFromHex(hex) {
+             const keyBuffer = hexToArrayBuffer(hex);
+             return await window.crypto.subtle.importKey(
+                 "raw",
+                 keyBuffer,
+                 { name: "AES-GCM" },
+                 false,
+                 ["encrypt", "decrypt"]
+             );
+         }
+         async function encryptWithKey(plaintext, key, iv) {
+             const encoder = new TextEncoder();
+             const encoded = encoder.encode(plaintext);
+             return await window.crypto.subtle.encrypt(
+                 { name: "AES-GCM", iv: iv },
+                 key,
+                 encoded
+             );
+         }
          async function fetchSharedKey(){
              const resp = await fetch("/get-shared-key");
              const data = await resp.json();
              document.getElementById("serverKey").textContent = data.sharedKey ? data.sharedKey : data.error;
+             return data.sharedKey;
          }
          document.getElementById("testForm").addEventListener("submit", async function(e){
              e.preventDefault();
              const plaintext = document.getElementById("plaintext").value;
-             const iv = [1,2,3,4,5,6,7,8,9,10,11,12];
-             const { encryptedData, iv: usedIV } = await (async () => {
-                // For proper testing, you need to perform AES-GCM encryption using the current shared key.
-                // For demonstration, we simulate encryption by using the TextEncoder output.
-                // In a production scenario, the client should encrypt using the shared key.
-                const encoder = new TextEncoder();
-                const encoded = encoder.encode(plaintext);
-                // Simulate encryption: This is not actual AES-GCM encryption.
-                return { encryptedData: Array.from(encoded), iv: iv };
-             })();
+             const iv = new Uint8Array([1,2,3,4,5,6,7,8,9,10,11,12]);
+             const sharedKeyHex = await fetchSharedKey();
+             if(!sharedKeyHex){
+                 document.getElementById("output").textContent = "Shared key not available.";
+                 return;
+             }
+             let cryptoKey;
+             try {
+                 cryptoKey = await importKeyFromHex(sharedKeyHex);
+             } catch(err) {
+                 document.getElementById("output").textContent = "Error importing key: " + err;
+                 return;
+             }
+             let ciphertextBuffer;
+             try {
+                 ciphertextBuffer = await encryptWithKey(plaintext, cryptoKey, iv);
+             } catch(err) {
+                 document.getElementById("output").textContent = "Encryption error: " + err;
+                 return;
+             }
+             const ciphertextArray = Array.from(new Uint8Array(ciphertextBuffer));
              const response = await fetch("/decrypt", {
                  method: "POST",
                  headers: {"Content-Type": "application/json"},
-                 body: JSON.stringify({ encryptedData: encryptedData, iv: iv })
+                 body: JSON.stringify({ encryptedData: ciphertextArray, iv: Array.from(iv) })
              });
-             const decData = await response.json();
-             document.getElementById("output").textContent = decData.decryptedData ? decData.decryptedData : decData.error;
+             const result = await response.json();
+             document.getElementById("output").textContent = result.decryptedData ? result.decryptedData : result.error;
          });
       </script>
     </body>
@@ -121,5 +155,4 @@ def test_page():
     return html
 
 if __name__ == '__main__':
-    # Run the Flask server over HTTPS using your self-signed certificate.
     app.run(host='0.0.0.0', port=5000, debug=True, ssl_context=('cert.pem', 'key.pem'))
