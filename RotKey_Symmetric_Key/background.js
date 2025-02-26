@@ -31,7 +31,11 @@ async function updateServerKey(keyHex) {
     let serverUrl;
     await new Promise((resolve) => {
       chrome.storage.local.get("serverUrl", (result) => {
+<<<<<<< Updated upstream
         serverUrl = result.serverUrl || "https://23.102.235.79:5000";
+=======
+        serverUrl = result.serverUrl || "https://p2bg4rotkey-ict2214.zapto.org";
+>>>>>>> Stashed changes
         resolve();
       });
     });
