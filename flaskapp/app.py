@@ -6,6 +6,7 @@ import re
 import bcrypt
 import ssl
 import hashlib
+import json
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -278,12 +279,22 @@ def login():
     try:
         ciphertext = bytes(encrypted_data_list)
         iv = bytes(iv_list)
+        print("Decrypting with key (hex):", current_shared_key.hex())
+        print("IV (hex):", iv.hex())
+        print("Ciphertext (hex):", ciphertext.hex())
         aesgcm = AESGCM(current_shared_key)
         decrypted_data = aesgcm.decrypt(iv, ciphertext, None)
+        
+        #return jsonify({'decryptedData': decrypted_data.decode('utf-8')})
+        
         decrypted_json = decrypted_data.decode('utf-8')
+        print("Decrypted JSON string:", decrypted_json)
         data = json.loads(decrypted_json)
+        print("here:",data)
     except Exception as e:
         return jsonify({'success': False, 'message': f'Decryption error: {str(e)}'}), 500
+
+
 
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()

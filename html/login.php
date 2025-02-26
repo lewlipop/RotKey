@@ -65,19 +65,25 @@
         }
 
         function fetchSharedKey() {
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", "/get-shared-key", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("GET", "/get-shared-key", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
 
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    const data = JSON.parse(xhr.responseText);
-                    console.log(data); // Debug the response
-                    document.getElementById("serverKey").textContent = data.sharedKey ? data.sharedKey : data.error;
-                }
-            };
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.responseText);
+                            console.log("SharedKeyHex", data.sharedKey); // Debug the response
+                            resolve(data.sharedKey);
+                        } else {
+                            reject(new Error("Failed to fetch shared key"));
+                        }
+                    }
+                };
 
-            xhr.send();
+                xhr.send();
+            });
         }
 
         document.getElementById("loginForm").addEventListener("submit", function(event) {
@@ -97,7 +103,7 @@
                 const sharedKeyHex = await fetchSharedKey();
                 if (!sharedKeyHex) {
                     //document.getElementById("output").textContent = "Shared key not available.";
-                    console.error("Shared key not available.");
+                    console.error("Shared key not available.", sharedKeyHex);
                     return;
                 }
                 let cryptoKey;
@@ -109,13 +115,14 @@
                 }
                 let ciphertextBuffer;
                 try {
-                    ciphertextBuffer = await encryptWithKey(data, cryptoKey, iv);
+                    ciphertextBuffer = await encryptWithKey(JSON.stringify(data), cryptoKey, iv);
                 } catch (err) {
                     alert("Encryption error: " + err);
                     return;
                 }
                 try {
                     const ciphertextArray = Array.from(new Uint8Array(ciphertextBuffer));
+                    console.log("Encrypted data:", ciphertextArray);
                     const loginResponse = await fetch('/process_login', {
                         method: 'POST',
                         headers: {
@@ -128,7 +135,7 @@
                     });
 
                     const loginData = await loginResponse.json();
-                    console.log(loginData)
+                    console.log("Shilololol", loginData, "gimmie");
 
                     if (!loginResponse.ok) {
                         throw new Error(loginData.message || 'Login failed'); // Throw an error if login fails
