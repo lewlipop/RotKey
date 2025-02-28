@@ -267,34 +267,36 @@ def register():
 
 @app.route('/process_login', methods=['POST'])
 def login():
-    if current_shared_key is None:
-        return jsonify({'success': False, 'message': 'Shared key not established'}), 400
-
     data = request.get_json()
-    encrypted_data_list = data.get('encryptedData')
-    iv_list = data.get('iv')
-    if not encrypted_data_list or not iv_list:
-        return jsonify({'success': False, 'message': 'Missing encrypted data or IV'}), 400
 
-    try:
-        ciphertext = bytes(encrypted_data_list)
-        iv = bytes(iv_list)
-        print("Decrypting with key (hex):", current_shared_key.hex())
-        print("IV (hex):", iv.hex())
-        print("Ciphertext (hex):", ciphertext.hex())
-        aesgcm = AESGCM(current_shared_key)
-        decrypted_data = aesgcm.decrypt(iv, ciphertext, None)
-        
-        #return jsonify({'decryptedData': decrypted_data.decode('utf-8')})
-        
-        decrypted_json = decrypted_data.decode('utf-8')
-        print("Decrypted JSON string:", decrypted_json)
-        data = json.loads(decrypted_json)
-        print("here:",data)
-    except Exception as e:
-        return jsonify({'success': False, 'message': f'Decryption error: {str(e)}'}), 500
+    if 'encryptedData' in data and 'iv' in data:
+        # Encrypted data received, proceed with decryption
+        if current_shared_key is None:
+            return jsonify({'success': False, 'message': 'Shared key not established'}), 400
 
+        encrypted_data_list = data.get('encryptedData')
+        iv_list = data.get('iv')
+        if not encrypted_data_list or not iv_list:
+            return jsonify({'success': False, 'message': 'Missing encrypted data or IV'}), 400
 
+        try:
+            ciphertext = bytes(encrypted_data_list)
+            iv = bytes(iv_list)
+            print("Decrypting with key (hex):", current_shared_key.hex())
+            print("IV (hex):", iv.hex())
+            print("Ciphertext (hex):", ciphertext.hex())
+            aesgcm = AESGCM(current_shared_key)
+            decrypted_data = aesgcm.decrypt(iv, ciphertext, None)
+            
+            decrypted_json = decrypted_data.decode('utf-8')
+            print("Decrypted JSON string:", decrypted_json)
+            data = json.loads(decrypted_json)
+            print("here:", data)
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Decryption error: {str(e)}'}), 500
+    else:
+        # Data is not encrypted, use it directly
+        print("Received unencrypted data:", data)
 
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()

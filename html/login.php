@@ -100,12 +100,57 @@
             // Using async/await for better error handling and readability
             async function login() {
                 const iv = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-                const sharedKeyHex = await fetchSharedKey();
+                let sharedKeyHex;
+                try {
+                    sharedKeyHex = await fetchSharedKey();
+                } catch (error) {
+                    console.error("Failed to fetch shared key:", error);
+                }
+
                 if (!sharedKeyHex) {
-                    //document.getElementById("output").textContent = "Shared key not available.";
-                    console.error("Shared key not available.", sharedKeyHex);
+                    console.warn("Shared key not available. Sending data without encryption.");
+                    try {
+                        const loginResponse = await fetch('/process_login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        const loginData = await loginResponse.json();
+                        console.log("Login response:", loginData);
+
+                        if (!loginResponse.ok) {
+                            throw new Error(loginData.message || 'Login failed'); // Throw an error if login fails
+                        }
+
+                        // If login is successful, set session in PHP and redirect to index.php
+                        const sessionResponse = await fetch('./set_session.php', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                username: loginData.username
+                            }), // Assuming the username is returned by Flask
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!sessionResponse.ok) {
+                            throw new Error('Failed to set session');
+                        }
+
+                        // After setting the session, redirect to index.php
+                        window.location.href = './index.php';
+
+                    } catch (error) {
+                        // Handle the error and display it to the user
+                        console.error('Error:', error);
+                        alert(`Error: ${error.message}`); // Show an alert to the user
+                    }
                     return;
                 }
+
                 let cryptoKey;
                 try {
                     cryptoKey = await importKeyFromHex(sharedKeyHex);
@@ -135,7 +180,7 @@
                     });
 
                     const loginData = await loginResponse.json();
-                    console.log("Shilololol", loginData, "gimmie");
+                    console.log("Login response:", loginData);
 
                     if (!loginResponse.ok) {
                         throw new Error(loginData.message || 'Login failed'); // Throw an error if login fails
