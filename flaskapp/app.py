@@ -187,33 +187,52 @@ def test_page():
 
 @app.route('/process_register', methods=['POST'])
 def register():
-#    print(ssl.OPENSSL_VERSION)
-
     data = request.get_json()
+
+    if 'encryptedData' in data and 'iv' in data:
+        # Encrypted data received, proceed with decryption
+        if current_shared_key is None:
+            return jsonify({'success': False, 'message': 'Shared key not established'}), 400
+
+        encrypted_data_list = data.get('encryptedData')
+        iv_list = data.get('iv')
+        if not encrypted_data_list or not iv_list:
+            return jsonify({'success': False, 'message': 'Missing encrypted data or IV'}), 400
+
+        try:
+            ciphertext = bytes(encrypted_data_list)
+            iv = bytes(iv_list)
+            print("Decrypting with key (hex):", current_shared_key.hex())
+            print("IV (hex):", iv.hex())
+            print("Ciphertext (hex):", ciphertext.hex())
+            aesgcm = AESGCM(current_shared_key)
+            decrypted_data = aesgcm.decrypt(iv, ciphertext, None)
+            
+            decrypted_json = decrypted_data.decode('utf-8')
+            print("Decrypted JSON string:", decrypted_json)
+            data = json.loads(decrypted_json)
+            print("here:", data)
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Decryption error: {str(e)}'}), 500
+    else:
+        # Data is not encrypted, use it directly
+        print("Received unencrypted data:", data)
 
     email = data.get('email', '').strip()
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
 
-#    print(email)
-#    print(username)
-#    print(password)
-
     # Validate fields
     if not email or not username or not password:
-#        print("hello")
         return jsonify({'success': False, 'message': 'All fields are required'}), 400
 
     if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
-#        print("hello")
         return jsonify({'success': False, 'message': 'Invalid email format'}), 400
 
     if not re.match(r"^[a-zA-Z0-9_\-]+$", username):
-#        print("hello")
         return jsonify({'success': False, 'message': 'Username contains invalid characters'}), 400
 
     if not PASSWORD_REGEX.match(password):
-#        print("hello")
         return jsonify({'success': False, 'message': 'Password does not meet security requirements'}), 400
 
     # Hash password
@@ -224,25 +243,20 @@ def register():
     cursor = None
 
     try:
-#       print("Calling get_db_connection()...")
-        conn = get_db_connection()       
+        conn = get_db_connection()
         cursor = conn.cursor()
 
-	# Check if the username already exists
+        # Check if the username already exists
         cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s", (username,))
-        (user_exists,)=cursor.fetchone()
+        (user_exists,) = cursor.fetchone()
         if user_exists:
             return jsonify({'success': False, 'message': 'Username already exists'}), 400
 
         # Check if the email already exists
         cursor.execute("SELECT COUNT(*) FROM users WHERE email = %s", (email,))
-        (email_exists,)=cursor.fetchone()
+        (email_exists,) = cursor.fetchone()
         if email_exists:
             return jsonify({'success': False, 'message': 'Email already exists'}), 400
-
-
-
-#        print(cursor)
 
         # Insert new user
         cursor.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)",
@@ -250,9 +264,6 @@ def register():
         conn.commit()
 
         return jsonify({'success': True, 'message': 'Registration successful'}), 201
-
-    #except mysql.connector.IntegrityError:
-     #   return jsonify({'success': False, 'message': 'Email already exists'}), 400
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'Database error: {str(e)}'}), 500
@@ -262,8 +273,6 @@ def register():
             cursor.close()
         if conn:
             conn.close()
-
-
 
 @app.route('/process_login', methods=['POST'])
 def login():

@@ -21,7 +21,6 @@
     <!-- Navigation bar -->
     <?php
     include "./navbar.php";
-    include "./prompt_extension.php"
     ?>
 
 
