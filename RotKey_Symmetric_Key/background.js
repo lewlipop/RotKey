@@ -7,7 +7,7 @@ let rotationIntervalId = null;
 let keyRotationInProgress = false;
 
 // Fixed IV for testing (12 bytes for AES-GCM)
-const fixedIV = [1,2,3,4,5,6,7,8,9,10,11,12];
+const IV = crypto.getRandomValues(new Uint8Array(12));
 
 // Generate a random symmetric key (256-bit)
 async function generateRandomSymmetricKey() {
@@ -69,7 +69,7 @@ async function initiateKeyRotation() {
     // Store the new key, fixed IV, and timestamp.
     chrome.storage.local.set({
       sharedKey: keyHex,
-      fixedIV: fixedIV,
+      IV: IV,
       lastRotation: Date.now()
     });
     // Update the server with the new key.
