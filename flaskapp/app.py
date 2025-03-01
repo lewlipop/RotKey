@@ -150,7 +150,8 @@ def test_page():
          document.getElementById("testForm").addEventListener("submit", async function(e){
              e.preventDefault();
              const plaintext = document.getElementById("plaintext").value;
-             const iv = new Uint8Array([1,2,3,4,5,6,7,8,9,10,11,12]);
+             const iv = crypto.getRandomValues(new Uint8Array(12));
+
              const sharedKeyHex = await fetchSharedKey();
              if(!sharedKeyHex){
                  document.getElementById("output").textContent = "Shared key not available.";
