@@ -99,7 +99,7 @@
             console.log("Sending Data:", data);
             // Using async/await for better error handling and readability
             async function login() {
-                const iv = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
                 let sharedKeyHex;
                 try {
                     sharedKeyHex = await fetchSharedKey();
