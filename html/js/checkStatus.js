@@ -3,9 +3,17 @@ document.addEventListener("DOMContentLoaded", function() {
   if (checkRotKeyStatusButton) {
     checkRotKeyStatusButton.addEventListener("click", async function() {
       try {
-        // Replace 'your-extension-id' with your actual extension ID
-        const extensionId = 'agdbicdmcaeneefgkidljbnpgdceakok';
+        // Wait for a short delay to ensure the extension ID is injected
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Retrieve the extension ID from the injected script
+        const extensionId = window.extensionId;
+        console.log("Extension ID:", extensionId); // Log the extension ID to the console
         
+        if (!extensionId) {
+          throw new Error("Extension ID is not available.");
+        }
+
         // Check RotKey status
         const response = await new Promise((resolve, reject) => {
           chrome.runtime.sendMessage(extensionId, { action: "checkKeyRotation" }, (response) => {
