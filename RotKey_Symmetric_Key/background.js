@@ -36,11 +36,15 @@ async function updateServerKey(keyHex) {
       });
     });
     console.log("Updating server with new key at:", serverUrl);
+
+    // Handle empty key case
+    const body = keyHex ? JSON.stringify({ key: keyHex }) : JSON.stringify({ key: null });
+
     const response = await fetch(`${serverUrl}/update-key`, {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: keyHex })
+      body: body
     });
     console.log("Response status from update-key:", response.status);
     const data = await response.json();
@@ -112,8 +116,8 @@ function stopEncryption() {
   console.log("Encryption stopped.");
 }
 
-// Listen for messages from the popup.
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Listen for messages from the popup or webpage.
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log("Received message in background:", message);
   if (message.action === "startEncryption") {
     startEncryption();
@@ -125,14 +129,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-//Listen for webpage check if running.
-chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+// Listen for messages from external sources (e.g., webpage).
+chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
+  console.log("Received external message in background:", message);
   if (message.action === "checkKeyRotation") {
-      if (encryptionEnabled) {
-          sendResponse({ status: "active" });
+    console.log("Checking key rotation status...");
+    if (encryptionEnabled) {
+      sendResponse({ status: "active" });
+    } else {
+      sendResponse({ status: "inactive" });
+    }
+  } else if (message.action === "updateKey") {
+    // Update the server with the current key
+    console.log("Received updateKey message.");
+    chrome.storage.local.get("sharedKey", async (result) => {
+      const keyHex = result.sharedKey;
+      if (keyHex) {
+        await updateServerKey(keyHex);
+        sendResponse({ status: "key updated" });
       } else {
-          sendResponse({ status: "inactive" });
+        sendResponse({ status: "no key found" });
       }
+    });
+  } else if (message.action === "deleteKey") {
+    // Update the server with an empty key to delete it
+    console.log("Received deleteKey message.");
+    await updateServerKey("");
+    sendResponse({ status: "key deleted" });
   }
   return true;
 });

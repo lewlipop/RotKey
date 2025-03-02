@@ -16,7 +16,7 @@
       "<all_urls>"
     ],
     "externally_connectable": {
-    "matches": ["*://yourwebsite.com/*"]
+    "matches": ["*://p2bg4rotkey-ict2214.zapto.org/*"]
   },
     "background": {
       "page": "background.html",

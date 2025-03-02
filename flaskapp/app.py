@@ -54,8 +54,10 @@ def update_key():
     global current_shared_key
     data = request.get_json()
     key_hex = data.get('key')
-    if not key_hex:
-        return jsonify({'error': 'Missing key in payload'}), 400
+    if key_hex is None:
+        current_shared_key = None
+        print("Shared key deleted.")
+        return jsonify({'status': 'Key deleted successfully'})
     try:
         current_shared_key = bytes.fromhex(key_hex)
         print("Updated shared key (hex):", key_hex)
@@ -350,5 +352,5 @@ def login():
 
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+#if __name__ == "__main__":
+#    app.run(host="0.0.0.0", port=5000, debug=True)
