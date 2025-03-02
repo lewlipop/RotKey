@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("Extension ID:", extensionId); // Log the extension ID to the console
         
         if (!extensionId) {
+            alert("Rotkey Extension is Not Installed!");
           throw new Error("Extension ID is not available.");
         }
 
