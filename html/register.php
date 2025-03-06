@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/main.css">
     <script type="text/javascript" src="/js/checkStatus.js"></script>
+    <script type="text/javascript" src="/js/regValidate.js"></script>
 </head>
 
 <body>
