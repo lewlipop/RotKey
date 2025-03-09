@@ -1,3 +1,4 @@
+// Wait until the DOM is fully loaded before executing the script
 document.addEventListener("DOMContentLoaded", () => {
     console.log("Popup loaded.");
     const statusLabel = document.getElementById("status");
@@ -5,9 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const keyDisplay = document.getElementById("keyDisplay");
     const startButton = document.getElementById("start");
     const stopButton = document.getElementById("stop");
-    const rotationInterval = 300; // seconds (5 minutes)
+    const rotationInterval = 300; // Define the key rotation interval in seconds (5 minutes)
     let countdownTimer;
   
+    // Function to update the countdown display in the UI
     function updateCountdownDisplay(timeLeft) {
       const minutes = Math.floor(timeLeft / 60);
       const seconds = timeLeft % 60;
@@ -15,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Countdown updated:", minutes, seconds);
     }
   
+    // Function to start the countdown timer using an initial time left value
     function startCountdown(initialTimeLeft) {
       let timeLeft = Math.floor(initialTimeLeft);
       console.log("Starting countdown with", timeLeft, "seconds left.");
@@ -27,12 +30,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 1000);
     }
   
+    // Function to stop the countdown timer and update the UI accordingly
     function stopCountdown() {
       console.log("Stopping countdown.");
       clearInterval(countdownTimer);
       countdownDisplay.textContent = "Key rotation stopped";
     }
   
+    // Retrieve stored state from chrome.storage when the popup loads
     chrome.storage.local.get(["encryptionEnabled", "lastRotation", "sharedKey"], (data) => {
       console.log("Restored state in popup:", data);
       if (data.encryptionEnabled) {
@@ -52,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   
+    // Event listener for the Start button
     startButton.addEventListener("click", () => {
       console.log("Start button clicked.");
       chrome.runtime.sendMessage({ action: "startEncryption" }, () => {
@@ -70,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 2000);
     });
   
+    // Event listener for the Stop button
     stopButton.addEventListener("click", () => {
       console.log("Stop button clicked.");
       chrome.runtime.sendMessage({ action: "stopEncryption" }, () => {
