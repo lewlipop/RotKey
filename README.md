@@ -104,15 +104,16 @@ for better context and understanding.
 If there are issues on the server side (e.g., key updates or decryption failures), follow these steps:
 
 1. **Access the Server via SSH**:
+   - IP: 23.102.235.79
    - Username: ict2214P2BG4
    - Password: rotKey1$th3b35t
 
-2. **Disable Gunicorn running on server**
+3. **Disable Gunicorn running on server**
    - Disable Gunicorn to stop the flask from running in production with the command
      ```bash
      systemctl stop gunicorn 
 
-3. **Check Flask Server Console Output**:
+4. **Check Flask Server Console Output**:
    - Navigate to app.py at the /var/www/flaskapp directory with the command
      ```bash
      cd /var/www/flaskapp
@@ -128,7 +129,7 @@ If there are issues on the server side (e.g., key updates or decryption failures
    - Review the console output of your Flask server for any error messages related to key decryption or updates.
    - Common errors might include missing keys, incorrect endpoints, or failed key update attempts.
   
-4. **Enable Gunicorn again to run on server**
+5. **Enable Gunicorn again to run on server**
    - Once the issues have been resolved, comment out the code in app.py
      ```bash
      #if __name__ == "__main__":
