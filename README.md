@@ -97,7 +97,7 @@ If the extension isn't working as expected, follow these steps to check for erro
 
 ## Server Errors
 ### Disclaimer: 
-- The server is only valid till **the end of April 2025**.
+- The server and the website is only valid till **the end of April 2025**.
 - For easy reference, the back end server source code in the /flaskapp and /html folder are copied over to the repository. It is recommended to login to the server
 for better context and understanding.
 
