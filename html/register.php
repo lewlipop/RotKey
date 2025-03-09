@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-
+<!-- Registration Page -->
 <head>
     <title>Register</title>
     <meta charset="UTF-8">
@@ -109,6 +109,7 @@
         document.getElementById("registerForm").addEventListener("submit", function(event) {
             event.preventDefault(); // Prevent form submission
 
+            // Obtain submitted values from the Register Page
             const email = document.getElementById("femail").value;
             const username = document.getElementById("fname").value;
             const password = document.getElementById("fpwd").value;

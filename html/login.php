@@ -1,5 +1,5 @@
 <html>
-
+<!-- Login Page -->
 <head>
     <title>Login</title>
     <meta charset="UTF-8">
@@ -12,7 +12,6 @@
     <!-- Navigation bar -->
     <?php
     include "./navbar.php";
-    
     ?>
 
     <div class="flex-container">
@@ -89,7 +88,8 @@
         document.getElementById("loginForm").addEventListener("submit", function(event) {
             event.preventDefault(); // Prevent form submission
 
-            const email = document.getElementById("femail").value;
+            // Obtain submitted values from the Login Page
+            const email = document.getElementById("femail").value; 
             const password = document.getElementById("fpwd").value;
             const data = {
                 email: email,

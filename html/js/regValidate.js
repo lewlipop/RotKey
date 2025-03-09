@@ -1,4 +1,3 @@
-
 // Form validation for basic errors
 function validateForm() {
     // Get values from form fields
@@ -6,8 +5,6 @@ function validateForm() {
     let username = document.forms["registerForm"]["fname"].value;
     let pwd = document.forms["registerForm"]["fpwd"].value;
     let confirmPwd = document.forms["registerForm"]["fconfirmPwd"].value;
-
-    
 
     // Boolean for return
     let isCorrect = true;

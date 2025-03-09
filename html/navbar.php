@@ -1,8 +1,8 @@
+<!-- Codes for Navigation Bar -->
 <div id="navbar">
     <?php
     session_start(); // Start the session to check if the user is logged in
 
-    // If user is not logged in, show login button
     if (!isset($_SESSION['username'])): ?>
         <!-- If user is not logged in, show login button -->
         <a href="./login.php"><button class="navbar-butt">Login</button></a>

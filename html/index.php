@@ -1,15 +1,5 @@
-<?php
-//session_start();  // Start the session to check if the user is logged in
-
-//echo '<pre>';
-//print_r($_SESSION);  // Displays all session variables
-//echo '</pre>';
-
-//
-?>
-
 <html>
-
+<!-- Home Page -->
 <head>
     <title>A Normal Website</title>
     <meta charset="UTF-8">
@@ -27,7 +17,6 @@
 
 
     <?php if (isset($_SESSION['username'])): ?>
-        <!-- <?php echo 'Logged in as: ' . $_SESSION['username'] ?>; -->
         <!-- If user logged in, show this content -->
         <div class="flex-container">
             <div class="flex-card">
@@ -40,7 +29,6 @@
             </div>
         </div>
     <?php else: ?>
-        <!-- <?php echo 'No user is logged in.' ?>; -->
         <!-- If user not logged in, show this content -->
         <div class="flex-container">
             <div class="flex-card">

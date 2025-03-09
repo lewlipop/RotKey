@@ -10,8 +10,7 @@ if (isset($data['username'])) {
     // Set the PHP session variable
     $_SESSION['username'] = $data['username'];
 
-    // Optionally, you can store more information in the session if needed
-    // $_SESSION['user_id'] = $user_id;
+    // Store more information in the session if needed
     echo json_encode(['success' => true]);
 } else {
     echo json_encode(['success' => false, 'message' => 'No username provided']);

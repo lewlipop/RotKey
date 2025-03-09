@@ -1,3 +1,5 @@
+/* Main Styles for all Web Pages */
+
 body {
     color: black;
     background-color: white;
@@ -12,21 +14,7 @@ body {
     padding: 2em 5% 2em 5%;
 }
 
-.flex-card {
-    margin: 1em;
-}
-
-img {
-    height: 20em;
-    width: auto;
-}
-
-.note {
-    margin: 0px;
-    font-size: medium;
-}
-
-/* Form */
+/* Styles for All Forms */
 
 .text-input {
     font-size: large;
@@ -39,12 +27,7 @@ img {
     width: 100%;
 }
 
-.form-error {
-    color: red;
-    margin: 0 0 0.5em 0px;
-}
-
-/* Navbar */
+/* Styles for Navbar */
 
 #navbar {
     min-width: 100%;
@@ -72,4 +55,28 @@ img {
 .navbar-butt:hover {
     cursor: pointer;
     background-color: rgb(52, 39, 142);
+}
+
+/* For index.php */
+
+.flex-card {
+    margin: 1em;
+}
+
+img {
+    height: 20em;
+    width: auto;
+}
+
+
+/* For register.php */
+
+.form-error {
+    color: red;
+    margin: 0 0 0.5em 0px;
+}
+
+.note {
+    margin: 0px;
+    font-size: medium;
 }
